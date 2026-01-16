@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
-import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  base: '/api-tasks-frontend/', // ⬅️ nome do repositório
+  base: '/dailyTasks/',
   plugins: [
     react(),
     tailwindcss(),
