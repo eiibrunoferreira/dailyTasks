@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+import api from '../services/api'
 import logo from "../assets/images/logo.png";
 
 export default function Register({ onBackToLogin }) {
@@ -16,16 +17,17 @@ export default function Register({ onBackToLogin }) {
     nameRef.current?.focus(); // foco automático no input de nome
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = {};
-    if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) { alert('Contém campos vazios') }
+
     if (!name.trim()) newErrors.name = true;
     if (!email.trim()) newErrors.email = true;
     if (!password.trim()) newErrors.password = true;
     if (!confirmPassword.trim()) newErrors.confirmPassword = true;
-    if (password && confirmPassword && password !== confirmPassword) {
+
+    if (password !== confirmPassword) {
       alert('As senhas não conferem!');
       newErrors.password = true;
       newErrors.confirmPassword = true;
@@ -36,9 +38,24 @@ export default function Register({ onBackToLogin }) {
       return;
     }
 
-    alert('Cadastro realizado com sucesso!');
-    onBackToLogin();
+    try {
+      await api.post('/Register', {
+        name,
+        email,
+        password,
+      });
+
+      alert('Cadastro realizado com sucesso!');
+      onBackToLogin();
+    } catch (error) {
+      if (error.response?.status === 409) {
+        alert('Email já cadastrado!');
+      } else {
+        alert('Erro ao cadastrar usuário');
+      }
+    }
   };
+
 
   const clearError = (field) => setErrors(prev => ({ ...prev, [field]: false }));
   const rightBorder = (hasError) =>

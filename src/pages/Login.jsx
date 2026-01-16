@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+import api from '../services/api';
 import logo from "../assets/images/logo.png";
 
 export default function Login({ onLogin, onBackToRegister }) {
@@ -14,11 +15,14 @@ export default function Login({ onLogin, onBackToRegister }) {
     emailRef.current?.focus(); // foco automático no input de email
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newErrors = {};
 
+    // ======================
+    // VALIDAÇÕES (MANTIDAS)
+    // ======================
     if (!email.trim() && !password.trim()) {
       newErrors.email = true;
       newErrors.password = true;
@@ -36,18 +40,39 @@ export default function Login({ onLogin, onBackToRegister }) {
       return;
     }
 
-    // Login simulado
-    alert('Login realizado com sucesso!');
-    onLogin();
+    // ======================
+    // LOGIN REAL (BACK-END)
+    // ======================
+    try {
+      const response = await api.post('/login', {
+        email,
+        password,
+      });
+
+      alert(`Bem-vindo, ${response.data.name}!`);
+      onLogin();
+
+    } catch (error) {
+      if (error.response) {
+        // erro retornado pelo backend
+        alert(error.response.data.message);
+      } else {
+        alert('Erro ao conectar com o servidor');
+      }
+    }
   };
 
-  const clearError = (field) => setErrors(prev => ({ ...prev, [field]: false }));
+  const clearError = (field) =>
+    setErrors(prev => ({ ...prev, [field]: false }));
 
   const rightBorder = (hasError) =>
     `border-r-4 transition-colors duration-300 ${hasError ? 'border-amber-700' : 'border-slate-300'}`;
 
-  const inputBase = "p-3 pl-9 w-full rounded-md bg-slate-700 placeholder-slate-200 outline-none";
-  const wrapperBase = "relative flex items-center transition-transform duration-200 ease-in-out focus-within:scale-105 origin-center";
+  const inputBase =
+    "p-3 pl-9 w-full rounded-md bg-slate-700 placeholder-slate-200 outline-none";
+
+  const wrapperBase =
+    "relative flex items-center transition-transform duration-200 ease-in-out focus-within:scale-105 origin-center";
 
   return (
     <div className="h-screen overflow-auto bg-slate-900 text-white flex flex-col gap-25 pt-16">
@@ -55,13 +80,7 @@ export default function Login({ onLogin, onBackToRegister }) {
         <div className="flex items-center justify-center">
           <img src={logo} alt="logo" className="w-80 h-auto -mb-24" />
         </div>
-        {/*
-        <h1 className="text-white text-4xl text-center">
-          YOUR <br />
-          <span className="bg-amber-700 px-2.5 rounded">DAILY</span> <br />
-          TASKS
-        </h1>
-          */}
+
         <div className="max-h-screen flex flex-col justify-center items-center px-5">
           <div className="w-full max-w-md bg-slate-800 rounded-2xl shadow-lg p-6">
             <h1 className="text-3xl font-bold mb-6 text-center">Entrar</h1>
@@ -69,13 +88,19 @@ export default function Login({ onLogin, onBackToRegister }) {
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               {/* Email */}
               <div className={wrapperBase}>
-                <FontAwesomeIcon icon={faEnvelope} className="absolute left-3 text-slate-300 z-10 pointer-events-none" />
+                <FontAwesomeIcon
+                  icon={faEnvelope}
+                  className="absolute left-3 text-slate-300 z-10 pointer-events-none"
+                />
                 <input
                   ref={emailRef}
                   type="email"
                   placeholder="Email"
                   value={email}
-                  onChange={e => { setEmail(e.target.value); clearError('email'); }}
+                  onChange={e => {
+                    setEmail(e.target.value);
+                    clearError('email');
+                  }}
                   onFocus={() => clearError('email')}
                   className={`${inputBase} ${rightBorder(!!errors.email)}`}
                 />
@@ -83,12 +108,18 @@ export default function Login({ onLogin, onBackToRegister }) {
 
               {/* Senha */}
               <div className={wrapperBase}>
-                <FontAwesomeIcon icon={faLock} className="absolute left-3 text-slate-300 z-10 pointer-events-none" />
+                <FontAwesomeIcon
+                  icon={faLock}
+                  className="absolute left-3 text-slate-300 z-10 pointer-events-none"
+                />
                 <input
                   type="password"
                   placeholder="Senha"
                   value={password}
-                  onChange={e => { setPassword(e.target.value); clearError('password'); }}
+                  onChange={e => {
+                    setPassword(e.target.value);
+                    clearError('password');
+                  }}
                   onFocus={() => clearError('password')}
                   className={`${inputBase} ${rightBorder(!!errors.password)}`}
                 />
