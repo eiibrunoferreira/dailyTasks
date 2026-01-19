@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
-import api from '../services/api'
+import EmailAlreadyExistsModal from '../modals/EmailAlreadyExistsModal';
+import api from '../services/api';
 import logo from "../assets/images/logo.png";
 
 export default function Register({ onBackToLogin }) {
+  const [isEmailAlreadyExistsModalOpen, setIsEmailAlreadyExistsModalOpen] = useState(false);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,7 +15,6 @@ export default function Register({ onBackToLogin }) {
   const [errors, setErrors] = useState({});
 
   const nameRef = useRef(null);
-
   useEffect(() => {
     nameRef.current?.focus(); // foco automático no input de nome
   }, []);
@@ -22,12 +24,35 @@ export default function Register({ onBackToLogin }) {
 
     const newErrors = {};
 
-    if (!name.trim()) newErrors.name = true;
-    if (!email.trim()) newErrors.email = true;
-    if (!password.trim()) newErrors.password = true;
-    if (!confirmPassword.trim()) newErrors.confirmPassword = true;
+    if (!name.trim() && !email.trim() && !password.trim()) {
+      alert('Preencha todos os campos...')
+      newErrors.name = true;
+      newErrors.email = true;
+      newErrors.password = true;
+      newErrors.confirmPassword = true;
+    }
 
-    if (password !== confirmPassword) {
+    else if (!name.trim()) {
+      newErrors.name = true;
+      alert('Preencha o campo NOME')
+    }
+
+    else if (!email.trim()) {
+      newErrors.email = true;
+      alert('Preencha o campo EMAIL')
+    }
+
+    else if (!password.trim()) {
+      newErrors.password = true;
+      alert('Preencha o campo SENHA')
+    }
+
+    else if (password.length < 8) {
+      newErrors.password = true;
+      alert('A senha deve ter acima de 8 caracteres!')
+    }
+
+    else if (password !== confirmPassword) {
       alert('As senhas não conferem!');
       newErrors.password = true;
       newErrors.confirmPassword = true;
@@ -50,6 +75,10 @@ export default function Register({ onBackToLogin }) {
     } catch (error) {
       if (error.response?.status === 409) {
         alert('Email já cadastrado!');
+        setIsEmailAlreadyExistsModalOpen(true)
+        setErrors({
+          email: true,
+        })
       } else {
         alert('Erro ao cadastrar usuário');
       }
@@ -69,13 +98,6 @@ export default function Register({ onBackToLogin }) {
         <div className="flex items-center justify-center">
           <img src={logo} alt="logo" className="w-80 h-auto -mb-24" />
         </div>
-        {/*
-                <h1 className="text-white text-4xl text-center">
-                  YOUR <br />
-                  <span className="bg-amber-700 px-2.5 rounded">DAILY</span> <br />
-                  TASKS
-                </h1>
-                  */}
         <div className="max-h-screen flex flex-col justify-center items-center px-5">
           <div className="w-full max-w-md bg-slate-800 rounded-2xl shadow-lg p-6">
             <h1 className="text-3xl font-bold mb-6 text-center">Registro</h1>
@@ -154,6 +176,9 @@ export default function Register({ onBackToLogin }) {
       <div className="w-full h-full flex items-end">
         <div className="bg-amber-700 w-full h-5"></div>
       </div>
+      {isEmailAlreadyExistsModalOpen && <EmailAlreadyExistsModal
+        name={name}
+        email={email} />}
     </div>
   );
 }

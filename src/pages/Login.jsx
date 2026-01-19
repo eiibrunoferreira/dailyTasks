@@ -20,16 +20,13 @@ export default function Login({ onLogin, onBackToRegister }) {
 
     const newErrors = {};
 
-    // ======================
-    // VALIDAÇÕES (MANTIDAS)
-    // ======================
     if (!email.trim() && !password.trim()) {
       newErrors.email = true;
       newErrors.password = true;
       alert('Preencha os campos Email e Senha');
     } else if (!email.trim()) {
       newErrors.email = true;
-      alert('Preencha o campo Email!');
+      alert('Preencha o campo Email');
     } else if (!password.trim()) {
       newErrors.password = true;
       alert('Preencha o campo Senha');
@@ -40,9 +37,6 @@ export default function Login({ onLogin, onBackToRegister }) {
       return;
     }
 
-    // ======================
-    // LOGIN REAL (BACK-END)
-    // ======================
     try {
       const response = await api.post('/login', {
         email,
@@ -54,8 +48,19 @@ export default function Login({ onLogin, onBackToRegister }) {
 
     } catch (error) {
       if (error.response) {
+        const message = error.response.data.message;
         // erro retornado pelo backend
-        alert(error.response.data.message);
+        alert(message);
+        if (
+          error.response.status === 401 ||
+          message.toLowerCase().includes('email') ||
+          message.toLowerCase().includes('senha')
+        ) {
+          setErrors({
+            email: true,
+            password: true,
+          })
+        }
       } else {
         alert('Erro ao conectar com o servidor');
       }
@@ -86,7 +91,6 @@ export default function Login({ onLogin, onBackToRegister }) {
             <h1 className="text-3xl font-bold mb-6 text-center">Entrar</h1>
 
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              {/* Email */}
               <div className={wrapperBase}>
                 <FontAwesomeIcon
                   icon={faEnvelope}
@@ -106,7 +110,6 @@ export default function Login({ onLogin, onBackToRegister }) {
                 />
               </div>
 
-              {/* Senha */}
               <div className={wrapperBase}>
                 <FontAwesomeIcon
                   icon={faLock}
