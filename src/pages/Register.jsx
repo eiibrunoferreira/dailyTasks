@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 import EmailAlreadyExistsModal from '../modals/EmailAlreadyExistsModal';
+import ToastModal from '../modals/ToastModal';
 import api from '../services/api';
 import logo from "../assets/images/logo.png";
 
-export default function Register({ onBackToLogin }) {
+export default function Register({ onBackToLogin, onGoToLoginWithEmail }) {
   const [isEmailAlreadyExistsModalOpen, setIsEmailAlreadyExistsModalOpen] = useState(false);
 
   const [name, setName] = useState('');
@@ -14,10 +15,24 @@ export default function Register({ onBackToLogin }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
 
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'error',
+  });
+
+  const showToast = (message, type = 'error') => {
+    setToast({ show: true, message, type });
+  };
+
+
+
   const nameRef = useRef(null);
   useEffect(() => {
     nameRef.current?.focus(); // foco automático no input de nome
   }, []);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +40,7 @@ export default function Register({ onBackToLogin }) {
     const newErrors = {};
 
     if (!name.trim() && !email.trim() && !password.trim()) {
-      alert('Preencha todos os campos...')
+      showToast('Preencha TODOS os campos...');
       newErrors.name = true;
       newErrors.email = true;
       newErrors.password = true;
@@ -34,28 +49,33 @@ export default function Register({ onBackToLogin }) {
 
     else if (!name.trim()) {
       newErrors.name = true;
-      alert('Preencha o campo NOME')
+      showToast('Preencha o campo NOME');
     }
 
     else if (!email.trim()) {
       newErrors.email = true;
-      alert('Preencha o campo EMAIL')
+      showToast('Preencha o campo EMAIL');
+    }
+
+    else if (!emailRegex.test(email)) {
+      newErrors.email = true;
+      showToast('Digite um E-MAIL válido');
     }
 
     else if (!password.trim()) {
       newErrors.password = true;
-      alert('Preencha o campo SENHA')
+      showToast('Preencha o campo SENHA');
     }
 
     else if (password.length < 8) {
       newErrors.password = true;
-      alert('A senha deve ter acima de 8 caracteres!')
+      showToast('A SENHA deve ter no mínimo 8 caracteres!');
     }
 
     else if (password !== confirmPassword) {
-      alert('As senhas não conferem!');
       newErrors.password = true;
       newErrors.confirmPassword = true;
+      showToast('As SENHAS não conferem!');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -70,17 +90,16 @@ export default function Register({ onBackToLogin }) {
         password,
       });
 
-      alert('Cadastro realizado com sucesso!');
+      showToast('Cadastro realizado com sucesso!', 'success');
       onBackToLogin();
+
     } catch (error) {
       if (error.response?.status === 409) {
-        alert('Email já cadastrado!');
-        setIsEmailAlreadyExistsModalOpen(true)
-        setErrors({
-          email: true,
-        })
+        showToast('EMAIL já cadastrado!');
+        setIsEmailAlreadyExistsModalOpen(true);
+        setErrors({ email: true });
       } else {
-        alert('Erro ao cadastrar usuário');
+        showToast('Erro ao cadastrar usuário');
       }
     }
   };
@@ -102,7 +121,7 @@ export default function Register({ onBackToLogin }) {
           <div className="w-full max-w-md bg-slate-800 rounded-2xl shadow-lg p-6">
             <h1 className="text-3xl font-bold mb-6 text-center">Registro</h1>
 
-            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
               {/* Nome */}
               <div className={wrapperBase}>
                 <FontAwesomeIcon icon={faUser} className="absolute left-3 text-slate-300 z-10 pointer-events-none" />
@@ -143,6 +162,12 @@ export default function Register({ onBackToLogin }) {
                 />
               </div>
 
+              {password.length > 0 && password.length < 8 && (
+                <p className="text-xs text-amber-500 -mt-3 ml-1">
+                  A senha deve ter no mínimo 8 caracteres
+                </p>
+              )}
+
               {/* Confirmar Senha */}
               <div className={wrapperBase}>
                 <FontAwesomeIcon icon={faLock} className="absolute left-3 text-slate-300 z-10 pointer-events-none" />
@@ -155,6 +180,12 @@ export default function Register({ onBackToLogin }) {
                   className={`${inputBase} ${rightBorder(!!errors.confirmPassword)}`}
                 />
               </div>
+
+              {confirmPassword.length > 0 && confirmPassword !== password && (
+                <p className="text-xs text-amber-500 -mt-3 ml-1">
+                  As senhas não são iguais...
+                </p>
+              )}
 
               <button type="submit" className="bg-amber-700 hover:bg-amber-700/80 p-3 rounded-md font-semibold cursor-pointer">
                 CADASTRAR
@@ -178,7 +209,18 @@ export default function Register({ onBackToLogin }) {
       </div>
       {isEmailAlreadyExistsModalOpen && <EmailAlreadyExistsModal
         name={name}
-        email={email} />}
+        email={email}
+        onClose={() => setIsEmailAlreadyExistsModalOpen(false)}
+        onGoToLogin={onGoToLoginWithEmail}
+      />}
+
+      <ToastModal
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
+
     </div>
   );
 }

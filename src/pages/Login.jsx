@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+import ToastModal from '../modals/ToastModal';
 import api from '../services/api';
 import logo from "../assets/images/logo.png";
 
-export default function Login({ onLogin, onBackToRegister }) {
+export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
@@ -15,6 +16,35 @@ export default function Login({ onLogin, onBackToRegister }) {
     emailRef.current?.focus(); // foco automático no input de email
   }, []);
 
+  useEffect(() => {
+    if (prefilledEmail) {
+      setEmail(prefilledEmail);
+    }
+  }, [prefilledEmail]);
+
+  const passwordRef = useRef(null);
+
+  useEffect(() => {
+    if (prefilledEmail) {
+      setEmail(prefilledEmail);
+      setTimeout(() => passwordRef.current?.focus(), 100);
+    }
+  }, [prefilledEmail]);
+
+
+
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'error',
+  });
+
+  const showToast = (message, type = 'error') => {
+    setToast({ show: true, message, type });
+  };
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -23,13 +53,19 @@ export default function Login({ onLogin, onBackToRegister }) {
     if (!email.trim() && !password.trim()) {
       newErrors.email = true;
       newErrors.password = true;
-      alert('Preencha os campos Email e Senha');
+      showToast('Preencha os campos EMAIL e SENHA');
     } else if (!email.trim()) {
       newErrors.email = true;
-      alert('Preencha o campo Email');
-    } else if (!password.trim()) {
+      showToast('Preencha o campo EMAIL');
+    }
+    else if (!emailRegex.test(email)) {
+      newErrors.email = true;
+      showToast('Digite um E-MAIL válido');
+    }
+
+    else if (!password.trim()) {
       newErrors.password = true;
-      alert('Preencha o campo Senha');
+      showToast('Preencha o campo SENHA');
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -43,14 +79,14 @@ export default function Login({ onLogin, onBackToRegister }) {
         password,
       });
 
-      alert(`Bem-vindo, ${response.data.name}!`);
+      showToast(`Bem-vindo, ${response.data.name}!`, 'success');
       onLogin();
 
     } catch (error) {
       if (error.response) {
         const message = error.response.data.message;
         // erro retornado pelo backend
-        alert(message);
+        showToast('EMAIL ou SENHA incorreto');
         if (
           error.response.status === 401 ||
           message.toLowerCase().includes('email') ||
@@ -62,7 +98,7 @@ export default function Login({ onLogin, onBackToRegister }) {
           })
         }
       } else {
-        alert('Erro ao conectar com o servidor');
+        showToast('Erro ao conectar com o servidor');
       }
     }
   };
@@ -90,7 +126,7 @@ export default function Login({ onLogin, onBackToRegister }) {
           <div className="w-full max-w-md bg-slate-800 rounded-2xl shadow-lg p-6">
             <h1 className="text-3xl font-bold mb-6 text-center">Entrar</h1>
 
-            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
               <div className={wrapperBase}>
                 <FontAwesomeIcon
                   icon={faEnvelope}
@@ -116,6 +152,7 @@ export default function Login({ onLogin, onBackToRegister }) {
                   className="absolute left-3 text-slate-300 z-10 pointer-events-none"
                 />
                 <input
+                  ref={passwordRef}
                   type="password"
                   placeholder="Senha"
                   value={password}
@@ -152,6 +189,14 @@ export default function Login({ onLogin, onBackToRegister }) {
       <div className="w-full h-full flex items-end">
         <div className="bg-amber-700 w-full h-5"></div>
       </div>
+
+      <ToastModal
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast(prev => ({ ...prev, show: false }))}
+      />
+
     </div>
   );
 }
