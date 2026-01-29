@@ -6,6 +6,7 @@ import api from '../services/api';
 import logo from "../assets/images/logo.png";
 
 export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
+  const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
@@ -73,7 +74,10 @@ export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
       return;
     }
 
+
     try {
+      setLoading(true);
+
       const response = await api.post('/login', {
         email,
         password,
@@ -100,6 +104,8 @@ export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
       } else {
         showToast('Erro ao conectar com o servidor');
       }
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -116,7 +122,7 @@ export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
     "relative flex items-center transition-transform duration-200 ease-in-out focus-within:scale-105 origin-center";
 
   return (
-    <div className="h-screen overflow-auto bg-slate-900 text-white flex flex-col gap-25 pt-16">
+    <div className="h-full bg-slate-900 text-white flex flex-col gap-25 pt-16 pb-16">
       <div className="flex flex-col gap-7">
         <div className="flex items-center justify-center">
           <img src={logo} alt="logo" className="w-80 h-auto -mb-24" />
@@ -167,10 +173,23 @@ export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
 
               <button
                 type="submit"
-                className="bg-amber-700 hover:bg-amber-700/80 p-3 rounded-md font-semibold cursor-pointer"
+                disabled={loading}
+                className={`p-3 rounded-md font-semibold cursor-pointer flex items-center justify-center gap-2 transition-all
+    ${loading
+                    ? 'bg-amber-700/70 cursor-not-allowed'
+                    : 'bg-amber-700 hover:bg-amber-700/80'}
+  `}
               >
-                ENTRAR
+                {loading ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    Entrando...
+                  </>
+                ) : (
+                  'ENTRAR'
+                )}
               </button>
+
             </form>
           </div>
 
@@ -185,10 +204,11 @@ export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
           </div>
         </div>
       </div>
-
+      {/*
       <div className="w-full h-full flex items-end">
         <div className="bg-amber-700 w-full h-5"></div>
       </div>
+      */}
 
       <ToastModal
         show={toast.show}
