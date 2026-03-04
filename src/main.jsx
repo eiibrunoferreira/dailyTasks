@@ -7,4 +7,13 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,
-)
+);
+
+// Remove splash screen quando tudo carregar
+window.addEventListener("load", () => {
+  const splash = document.getElementById("splash-screen");
+  if (splash) {
+    splash.classList.add("fade-out");
+    setTimeout(() => splash.remove(), 500);
+  }
+});

@@ -51,3 +51,13 @@ export default function App() {
     </div>
   );
 }
+
+
+
+/*npm run build
+rm -rf docs/*
+cp -r dist/* docs/
+git add docs
+git commit -m "build: update GitHub Pages"
+git push
+*/
