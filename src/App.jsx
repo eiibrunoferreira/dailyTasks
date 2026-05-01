@@ -20,7 +20,7 @@ export default function App() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-slate-900">
+    <div className="w-full min-h-screen bg-[linear-gradient(to_top,#051338_0%,#040d24_100%)]">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentPage}

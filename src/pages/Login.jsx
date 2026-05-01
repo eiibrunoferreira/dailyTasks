@@ -122,7 +122,7 @@ export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
     "relative flex items-center transition-transform duration-200 ease-in-out focus-within:scale-105 origin-center";
 
   return (
-    <div className="h-full bg-slate-900 text-white flex flex-col gap-25 pt-16 pb-16">
+    <div className="h-full text-white flex flex-col gap-25 pt-16 pb-16">
       <div className="flex flex-col gap-7">
         <div className="flex items-center justify-center">
           <img src={logo} alt="logo" className="w-80 h-auto -mb-24" />
