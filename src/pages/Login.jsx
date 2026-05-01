@@ -116,7 +116,7 @@ export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
     `border-r-4 transition-colors duration-300 ${hasError ? 'border-amber-700' : 'border-slate-300'}`;
 
   const inputBase =
-    "p-3 pl-9 w-full rounded-md bg-slate-700 placeholder-slate-200 outline-none";
+    "p-3 pl-9 w-full rounded-md bg-slate-800 placeholder-slate-200 outline-none";
 
   const wrapperBase =
     "relative flex items-center transition-transform duration-200 ease-in-out focus-within:scale-105 origin-center";
@@ -129,7 +129,7 @@ export default function Login({ onLogin, onBackToRegister, prefilledEmail }) {
         </div>
 
         <div className="max-h-screen flex flex-col justify-center items-center px-5">
-          <div className="w-full max-w-md bg-slate-800 rounded-2xl shadow-lg p-6">
+          <div className="w-full max-w-md bg-slate-950/70 rounded-2xl shadow-lg p-6">
             <h1 className="text-3xl font-bold mb-6 text-center">Entrar</h1>
 
             <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
